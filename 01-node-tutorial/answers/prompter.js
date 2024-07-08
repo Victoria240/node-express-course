@@ -1,5 +1,5 @@
 const http = require("http");
-var StringDecoder = require("string_decoder").StringDecoder;
+var StringDecoder = require("string_decoder").StringDecoder; 
 
 const getBody = (req, callback) => {
   const decode = new StringDecoder("utf-8");
@@ -21,19 +21,29 @@ const getBody = (req, callback) => {
 };
 
 // here, you could declare one or more variables to store what comes back from the form.
-let item = "Enter something below.";
+let selectedColor = "white"; // Initialize selectedColor variable with default color
 
 // here, you can change the form below to modify the input fields and what is displayed.
 // This is just ordinary html with string interpolation.
 const form = () => {
   return `
-  <body>
-  <p>${item}</p>
-  <form method="POST">
-  <input name="item"></input>
-  <button type="submit">Submit</button>
-  </form>
-  </body>
+    <body style="background-color: ${selectedColor};">
+      <p>Choose a color:</p>
+      <form method="POST">
+        <select name="color">
+          <option value="red">Red</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="purple">Purple</option>
+          <option value="orange">Orange</option>
+          <option value="pink">Pink</option>
+          <option value="black">Black</option>
+          <option value="white">White</option>
+        </select>
+        <button type="submit">Submit</button>
+      </form>
+    </body>
   `;
 };
 
@@ -44,10 +54,8 @@ const server = http.createServer((req, res) => {
     getBody(req, (body) => {
       console.log("The body of the post is ", body);
       // here, you can add your own logic
-      if (body["item"]) {
-        item = body["item"];
-      } else {
-        item = "Nothing was entered.";
+      if (body["color"]) { // Check if color is submitted in the form data
+        selectedColor = body["color"]; // Update selectedColor with the submitted color
       }
       // Your code changes would end here
       res.writeHead(303, {
