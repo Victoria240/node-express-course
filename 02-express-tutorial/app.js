@@ -1,9 +1,35 @@
+
 const express = require('express');
 const app = express();
-const { products } = require('./data'); // Import the products data
+const cookieParser = require('cookie-parser');
+const peopleRouter = require('./routes/people');
+const { products } = require('./data');
+
+// Logger middleware function
+const logger = (req, res, next) => {
+    console.log(`${req.method} ${req.url} at ${new Date().toISOString()}`);
+    next();
+};
+
+// Authentication middleware function
+const auth = (req, res, next) => {
+    if (req.cookies.name) {
+        req.user = req.cookies.name;
+        next();
+    } else {
+        res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+};
 
 // Middleware to serve static files from the "public" directory
 app.use(express.static('./public'));
+
+// Use express.json() middleware for parsing JSON bodies
+app.use(express.json());
+app.use(cookieParser());
+
+// Applying logger middleware globally
+app.use(logger);
 
 // Route to return all products as JSON
 app.get('/api/v1/products', (req, res) => {
@@ -37,6 +63,30 @@ app.get('/api/v1/query', (req, res) => {
     }
 
     res.json(filteredProducts);
+});
+
+// Use the people router
+app.use('/api/v1/people', peopleRouter);
+
+// Login route
+app.post('/logon', (req, res) => {
+    const { name } = req.body;
+    if (!name) {
+        return res.status(400).json({ success: false, message: 'Please provide a name' });
+    }
+    res.cookie('name', name);
+    res.status(201).json({ success: true, message: `Hello, ${name}` });
+});
+
+// Logout route
+app.delete('/logoff', (req, res) => {
+    res.clearCookie('name');
+    res.status(200).json({ success: true, message: 'Logged off' });
+});
+
+// Test route with authentication middleware
+app.get('/test', auth, (req, res) => {
+    res.status(200).json({ success: true, message: `Welcome, ${req.user}` });
 });
 
 // Handle 404 errors for other routes
